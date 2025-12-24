@@ -1,97 +1,88 @@
 /*
- * 🛡️ THE ARMORED FRIDA BYPASS: VdoCipher libvdomain Edition
- * Targeted: Native Detection, JNI Checks, and File-system Invisibility
+ * 🚀 VdoCipher Aegis Ultimate Bypass (Internal Edition)
+ * Targeted: Java AppAnalytics + Native libvdomain Checks
  */
 
 (function() {
     'use strict';
 
-    function bypassVdoProtections() {
-        console.log("[⚡] Initializing Armored Bypass for libvdomain.so...");
+    Java.perform(function() {
+        console.log("\n[+] --- Starting Ultimate VdoCipher Bypass ---");
 
-        // 1. استهداف كلاس التحليلات والحماية المذكور في ملف الـ Strings
-        [span_5](start_span)// المصدر:[span_5](end_span) Java_com_vdocipher_aegis_analytics_internal_AppAnalytics
-        const vdoClassPath = "com.vdocipher.aegis.analytics.internal.AppAnalytics";
-        
-        Java.perform(() => {
-            try {
-                const AppAnalytics = Java.use(vdoClassPath);
-                
-                [span_6](start_span)// تعطيل دوال الكشف الأساسية (المستهدفة في JNI)[span_6](end_span)
-                const detectionMethods = ['a', 'b', 'c', 'q', 't'];
-                detectionMethods.forEach(method => {
-                    AppAnalytics[method].overload().implementation = function() {
-                        // console.log(`[✔] Neutralized check: ${method}`);
-                        return 0; // إرجاع 0 (No Threats Found)
-                    };
-                });
-            } catch (err) {
-                console.log("[!] AppAnalytics class not found in Java layer yet.");
-            }
+        const AppAnalytics = Java.use("com.vdocipher.aegis.analytics.internal.AppAnalytics");
 
-            [span_7](start_span)// 2. إخفاء ملفات النظام والمجلدات المشبوهة[span_7](end_span)
-            const File = Java.use("java.io.File");
-            const forbidden = [
-                "su", "magisk", "xposed", "edxposed", "luckypatcher", 
-                "bin/failsafe", "xbin", "sbin", "test-keys"
-            ];
+        /**
+         * 1. تزييف فحص الحزم المشبوهة (Anti-Package Detection)
+         * [span_2](start_span)الكود في DEX يستخدم دالة 'a' مع قائمة حزم تم جلبها من الـ Native[span_2](end_span).
+         */
+        AppAnalytics.a.overload('android.content.Context', 'java.util.List').implementation = function(ctx, list) {
+            // console.log("[*] Intercepted Package Scanner: Returning False (Safe)");
+            return false; 
+        };
 
-            File.exists.implementation = function() {
-                const path = this.getAbsolutePath();
-                for (const item of forbidden) {
-                    if (path.indexOf(item) !== -1) return false;
-                }
-                return this.exists();
-            };
+        /**
+         * 2. تعطيل فحص نظام الملفات المعقد (Mount/RW Protection)
+         * [span_3](start_span)الدالة 'h' تقوم بقراءة مخرجات 'mount' وتبحث عن صلاحيات RW في أقسام النظام[span_3](end_span).
+         * هذا هو أقوى فحص في الجافا، وتعطيله هنا يوقف كشف الروت العميق.
+         */
+        AppAnalytics.h.implementation = function() {
+            // console.log("[*] Intercepted Mount Point Scan: Returning False (All RO)");
+            return false; 
+        };
 
-            [span_8](start_span)// 3. تخطي فحوصات الـ Build Tags (test-keys)[span_8](end_span)
-            const SystemProperties = Java.use("android.os.SystemProperties");
-            SystemProperties.get.overload('java.lang.String').implementation = function(key) {
-                if (key === "ro.build.tags") return "release-keys";
-                if (key === "ro.secure") return "1";
-                if (key === "ro.debuggable") return "0";
-                return this.get(key);
-            };
-        });
+        /**
+         * 3. تصفير الـ Bitmask النهائي
+         * الدالة 'a(Context)' هي التي تجمع كل نتائج الفحوصات (Root, Emulator, Debug) 
+         * [span_4](start_span)في متغير واحد (int)[span_4](end_span). إرجاع 0 يعني "جهاز نظيف تماماً".
+         */
+        AppAnalytics.a.overload('android.content.Context').implementation = function(ctx) {
+            // console.log("[✔] Overriding Threat Score to 0 (Clean Device)");
+            return 0;
+        };
 
-        [span_9](start_span)[span_10](start_span)// 4. تعطيل الـ Native Anti-Debug و Ptrace Bypass[span_9](end_span)[span_10](end_span)
-        const ptrace = Module.findExportByName(null, "ptrace");
-        if (ptrace) {
-            Interceptor.replace(ptrace, new NativeCallback(() => {
-                return 0;
-            }, 'int', ['int', 'int', 'pointer', 'pointer']));
-            console.log("[✔] Native Ptrace Shield Active.");
-        }
+        /**
+         * 4. تزييف حالة تحميل المكتبة
+         * [span_5](start_span)نضمن أن التطبيق يعتقد أن المكتبة محملة بنجاح (a = true) ليتجنب الانهيار[span_5](end_span).
+         */
+        AppAnalytics.a.value = true;
 
-        [span_11](start_span)// 5. استهداف مباشر لـ libvdomain.so وإصابة الـ JNI Exports[span_11](end_span)
-        const moduleName = "libvdomain.so";
-        const targetFunctions = [
-            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_a",
-            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_b",
-            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_c",
-            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_q",
-            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_t"
+        /**
+         * 5. التعامل مع طبقة الـ Native (C++)
+         * [span_6](start_span)استهداف الدوال التي تظهر في ملف Strings وتستخدمها الجافا[span_6](end_span).
+         */
+        const nativeSymbols = [
+            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_r", // Root check
+            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_t", // Integrity check
+            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_d", // Debug check
+            "Java_com_vdocipher_aegis_analytics_internal_AppAnalytics_e"  // Emulator check
         ];
 
-        Process.enumerateModules().forEach(m => {
-            if (m.name === moduleName) {
-                targetFunctions.forEach(funcName => {
-                    const addr = Module.findExportByName(m.name, funcName);
-                    if (addr) {
-                        Interceptor.attach(addr, {
-                            onLeave: function(retval) {
-                                // إجبار المكتبة الأصلية على إعطاء رد "آمن" للجافا
-                                retval.replace(0x0); 
-                            }
-                        });
-                        console.log(`[✔] Hooked Native Export: ${funcName}`);
+        nativeSymbols.forEach(function(symbol) {
+            const addr = Module.findExportByName("libvdomain.so", symbol);
+            if (addr) {
+                Interceptor.attach(addr, {
+                    onLeave: function(retval) {
+                        [span_7](start_span)// تصفير النتيجة الأصلية القادمة من المكتبة[span_7](end_span)
+                        retval.replace(0); 
                     }
                 });
+                // console.log("[+] Hooked Native Symbol: " + symbol);
             }
         });
-    }
 
-    // التنفيذ الفوري
-    setImmediate(bypassVdoProtections);
+        /**
+         * 6. حماية الـ Runtime (Anti-Execution)
+         * [span_8](start_span)الكود يحاول تنفيذ أمر 'mount' عبر Runtime.exec()[span_8](end_span).
+         */
+        const Runtime = Java.use("java.lang.Runtime");
+        Runtime.exec.overload('java.lang.String').implementation = function(cmd) {
+            if (cmd === "mount" || cmd.includes("su")) {
+                // تزييف مخرجات الأوامر الحساسة لتبدو وكأنها فارغة أو آمنة
+                return this.exec("echo 'system /system ext4 ro,relatime 0 0'");
+            }
+            return this.exec(cmd);
+        };
 
+        console.log("[✔] --- All Protections Are Now Neutralized --- \n");
+    });
 })();
